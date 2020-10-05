@@ -58,6 +58,7 @@ ORD_CHAR
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include "lexer.h"
 #include "y.tab.h"
 
 #ifndef YYSTYPE
@@ -78,6 +79,7 @@ enum context {
 };
 
 struct lex_state {
+	int flags;
 	enum context ctx;
 	size_t line_pos;
 	size_t brack_pos;
@@ -89,14 +91,20 @@ struct lex_state {
 static struct lex_state lex_state;
 
 int yyerror(const char* s) {
-	fprintf(stderr, "%s @%zu\n", s, lex_state.line_pos);
+	if(!(lex_state.flags & LEXFLAG_SILENT))
+		fprintf(stderr, "%s @%zu\n", s, lex_state.line_pos);
 	return 1;
 }
 
-void lex_init(const char *p, const char *pe) {
+size_t lex_errpos(void) {
+	return lex_state.line_pos;
+}
+
+void lex_init(const char *p, const char *pe, int flags) {
 	memset(&lex_state, 0, sizeof(lex_state));
 	lex_state.p = lex_state.ps = p;
 	lex_state.pe = pe;
+	lex_state.flags = flags;
 }
 
 static int ctxup(enum context newctx) {
