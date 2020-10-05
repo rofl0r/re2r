@@ -83,6 +83,7 @@ struct lex_state {
 	size_t brack_pos;
 	int brack_neg;
 	unsigned open_parens;
+	const char *p, *ps, *pe;
 };
 
 static struct lex_state lex_state;
@@ -92,8 +93,10 @@ int yyerror(const char* s) {
 	return 1;
 }
 
-void lex_init(void) {
+void lex_init(const char *p, const char *pe) {
 	memset(&lex_state, 0, sizeof(lex_state));
+	lex_state.p = lex_state.ps = p;
+	lex_state.pe = pe;
 }
 
 static int ctxup(enum context newctx) {
@@ -109,22 +112,26 @@ static int ctxup(enum context newctx) {
 	return 1;
 }
 
-static int mygetc(FILE*f) {
-	int c = fgetc(f);
+static int mygetc(void) {
+	if(lex_state.p == lex_state.pe) return EOF;
 	lex_state.line_pos++;
-	return c;
+	return *(lex_state.p++);
 }
 
-static int myungetc(int c, FILE*f) {
-	int r=ungetc(c, f);
-	if(r != EOF) lex_state.line_pos--;
-	return r;
+static int myungetc(int c) {
+	(void) c;
+	if(lex_state.p == lex_state.ps) return EOF;
+	lex_state.line_pos--;
+	return *(lex_state.p--);
 }
+
+#define GETC(...) mygetc()
+#define UNGETC(...) myungetc(0)
 
 #define CTX lex_state.ctx
 
 int yylex() {
-	int ch = mygetc(yyin), ch2;
+	int ch = GETC(yyin), ch2;
 	if(YYDEBUG) fprintf(stderr, "yylex: %c\n", ch);
 	yylval = ch;
 	if(CTX == CTX_BRACKET) ++lex_state.brack_pos;
@@ -132,7 +139,7 @@ int yylex() {
 	case EOF:
 		return EOF;
 	case '\\':
-		ch2 = mygetc(yyin);
+		ch2 = GETC(yyin);
 		switch(ch2) {
 		case '\\':
 		case '^':
@@ -149,7 +156,7 @@ int yylex() {
 			yylval = ch2;
 			return QUOTED_CHAR;
 		default:
-			myungetc(ch2, yyin);
+			UNGETC(ch2, yyin);
 			if(CTX != CTX_BRACKET) return '\\'; /*SPEC_CHAR;*/
 			return ORD_CHAR;
 		}
@@ -193,8 +200,8 @@ int yylex() {
 		if(CTX == CTX_BRACKET) {
 			if(lex_state.brack_pos-lex_state.brack_neg==1)
 				return ORD_CHAR;
-			ch2 = mygetc(yyin);
-			myungetc(ch2, yyin);
+			ch2 = GETC(yyin);
+			UNGETC(ch2, yyin);
 			if(ch2 == ']') return ORD_CHAR;
 			return ch; /* META_CHAR */
 		}
@@ -224,9 +231,9 @@ int yylex() {
 	case '9':
 		if(CTX == CTX_DUP) {
 			unsigned n = ch - '0';
-			while(isdigit((ch = mygetc(yyin))))
+			while(isdigit((ch = GETC(yyin))))
 				n = n*10 + (ch - '0');
-			myungetc(ch, yyin);
+			UNGETC(ch, yyin);
 			yylval = n;
 			return DUP_COUNT;
 		}

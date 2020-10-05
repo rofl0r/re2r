@@ -9,14 +9,19 @@ extern int yyerror(const char*);
 FILE *yyin;
 
 extern int yyparse();
-extern void lex_init(void);
+extern void lex_init();
 extern int yydebug;
 
 int main() {
 #ifdef YYDEBUG
 	yydebug = 1;
 #endif
-	lex_init();
+	char buf[4096];
 	yyin = stdin;
-	yyparse();
+	while(fgets(buf, sizeof buf, yyin)) {
+		const char* p = buf, *pe = strrchr(buf, '\n');
+		if(!pe) pe = buf + strlen(p);
+		lex_init(p, pe);
+		yyparse();
+	}
 }
