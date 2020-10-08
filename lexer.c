@@ -72,15 +72,9 @@ extern int yyerror(const char*);
 extern YYSTYPE yylval;
 extern FILE* yyin;
 
-enum context {
-	CTX_NONE=0,
-	CTX_DUP,
-	CTX_BRACKET,
-};
-
 struct lex_state {
 	int flags;
-	enum context ctx;
+	enum lex_context ctx;
 	size_t line_pos;
 	size_t brack_pos;
 	int brack_neg;
@@ -96,6 +90,10 @@ int yyerror(const char* s) {
 	return 1;
 }
 
+enum lex_context lex_getcontext(void) {
+	return lex_state.ctx;
+}
+
 size_t lex_errpos(void) {
 	return lex_state.line_pos;
 }
@@ -107,7 +105,11 @@ void lex_init(const char *p, const char *pe, int flags) {
 	lex_state.flags = flags;
 }
 
-static int ctxup(enum context newctx) {
+size_t lex_getpos(void) {
+	return lex_state.p - lex_state.ps;
+}
+
+static int ctxup(enum lex_context newctx) {
 	if(newctx != CTX_NONE && lex_state.ctx != CTX_NONE) {
 		yyerror("invalid context switch");
 		return 0;
