@@ -14,5 +14,7 @@ static int rematch_%MACHINENAME%(const char *p, size_t nmatch, regmatch_t matche
 	%% write exec;
 	if(cs < %%{ write first_final; }%% ) return -1;
 	matches[0] = (regmatch_t){.rm_so = 0, .rm_eo = eof-start};
+	for(i=0;i<nmatch;++i) if(matches[i].rm_eo == -1) matches[i].rm_so = -1;
 	return 0;
 }
+
