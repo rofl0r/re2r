@@ -7,6 +7,7 @@
 #include "yydefs.h"
 #include "lexer.h"
 #include "sblist.h"
+#include "hsearch.h"
 
 extern int yyerror(const char*);
 
@@ -234,6 +235,7 @@ int main() {
 	size_t lineno = 0;
 	yyin = stdin;
 	int maxgroups = 0;
+	struct htab *remap = htab_create(32);
 	while(fgets(buf, sizeof buf, yyin)) {
 		++lineno;
 		char* q = buf;
@@ -242,8 +244,17 @@ int main() {
 		*q = 0;
 		const char *p = ++q, *pe = strrchr(p, '\n');
 		if(!pe) pe = p + strlen(p);
+		htab_value *v = htab_find(remap, (void*)p);
+		if(v) {
+			/* identical regex, already syntax-checked */
+			printf("EXPORT int rematch_%s(const char *p, size_t nmatch, regmatch_t matches[])\n"
+			       "{\n\treturn rematch_%s(p, nmatch, matches);\n}\n\n",
+			       buf, (char*) v->p);
+			continue;
+		}
 		lex_init(p, pe, LEXFLAG_SILENT);
 		if(yyparse() == 0) {
+			htab_insert(remap, strdup(p), HTV_P(strdup(buf)));
 			/* syntax check OK */
 			lex_init(p, pe, LEXFLAG_SILENT);
 			dump_ragel_parser(buf, p, &maxgroups);
