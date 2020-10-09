@@ -265,4 +265,5 @@ int main() {
 			fprintf(stderr, "%*s^\n", (int)errpos, "");
 		}
 	}
+	fprintf(stderr, "diagnostics: maximum number of match groups: %d\n", maxgroups);
 }
