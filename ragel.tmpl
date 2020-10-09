@@ -7,8 +7,9 @@ main := %MACHINEDEF% ;
 
 EXPORT int rematch_%MACHINENAME%(const char *p, size_t nmatch, regmatch_t matches[]) {
 	size_t i, cs;
+	const char *start = p, *pe = p + strlen(p), *eof = pe;
+	%% write data nofinal noerror noentry;
 	for(i=0;i<nmatch;++i) matches[i] = (regmatch_t){.rm_so = -1, .rm_eo = -1};
-	%% write data;
 	%% write init;
 	%% write exec;
 	if(cs < %%{ write first_final; }%% ) return -1;
