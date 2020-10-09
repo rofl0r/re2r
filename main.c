@@ -95,6 +95,7 @@ static sblist* list_join_literals(sblist* tokens, const char* org_regex) {
 			struct list_item *li= sblist_get(tokens, j);
 			if(li->type != CTX_NONE) break;
 			switch(org_regex[li->so]) {
+			case '"':
 			case '^':
 			case '.':
 			case '[':
@@ -135,6 +136,9 @@ static void print_token(struct list_item *li, const char *org_regex) {
 			printf("('-'|%.*s])", (int) (li->eo-li->so-2), org_regex+li->so);
 			return;
 		}
+	} else if(li->type == CTX_NONE && org_regex[li->so] == '"') {
+		printf("'\"'");
+		return;
 	}
 	printf("%.*s", (int) (li->eo-li->so), org_regex+li->so);
 }
