@@ -234,7 +234,7 @@ int main() {
 	char buf[4096];
 	size_t lineno = 0;
 	yyin = stdin;
-	int maxgroups = 0;
+	int maxgroups = 0, err = 0;
 	struct htab *remap = htab_create(32);
 	while(fgets(buf, sizeof buf, yyin)) {
 		++lineno;
@@ -259,6 +259,7 @@ int main() {
 			lex_init(p, pe, LEXFLAG_SILENT);
 			dump_ragel_parser(buf, p, &maxgroups);
 		} else {
+			++err;
 			size_t errpos = lex_errpos();
 			fprintf(stderr, "parse error @%zu:%zu\n", lineno, errpos);
 			fprintf(stderr, "%.*s\n", (int)(pe-p), p);
@@ -266,4 +267,5 @@ int main() {
 		}
 	}
 	fprintf(stderr, "diagnostics: maximum number of match groups: %d\n", maxgroups);
+	return !!err;
 }
