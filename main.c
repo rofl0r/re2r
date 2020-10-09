@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <assert.h>
 
 #include "y.tab.h"
@@ -235,15 +236,17 @@ int main() {
 	int maxgroups = 0;
 	while(fgets(buf, sizeof buf, yyin)) {
 		++lineno;
-		const char* p = buf, *pe = strrchr(buf, '\n');
-		if(!pe) pe = buf + strlen(p);
+		char* q = buf;
+		while(!isspace(*q)) q++;
+		if(*q == '\n') continue;
+		*q = 0;
+		const char *p = ++q, *pe = strrchr(p, '\n');
+		if(!pe) pe = p + strlen(p);
 		lex_init(p, pe, LEXFLAG_SILENT);
 		if(yyparse() == 0) {
 			/* syntax check OK */
-			char nbuf[128];
-			snprintf(nbuf, sizeof nbuf, "machine_%04zu", lineno);
 			lex_init(p, pe, LEXFLAG_SILENT);
-			dump_ragel_parser(nbuf, p, &maxgroups);
+			dump_ragel_parser(buf, p, &maxgroups);
 		} else {
 			size_t errpos = lex_errpos();
 			fprintf(stderr, "parse error @%zu:%zu\n", lineno, errpos);
