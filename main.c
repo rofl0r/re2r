@@ -11,7 +11,7 @@
 
 extern int yyerror(const char*);
 
-FILE *yyin;
+FILE *yyin, *yyout;
 
 extern int yyparse();
 extern int yydebug;
@@ -127,22 +127,22 @@ static sblist* list_join_literals(sblist* tokens, const char* org_regex) {
 
 static void print_token(struct list_item *li, const char *org_regex) {
 	if(li->type == 0xff) {
-		printf(" \"%.*s\" ", (int) (li->eo-li->so), org_regex+li->so);
+		fprintf(yyout, " \"%.*s\" ", (int) (li->eo-li->so), org_regex+li->so);
 		return;
 	} else if(li->type == CTX_BRACKET) {
 		/* ragel doesn't like leading/trailing dash in bracket expression */
 		if(org_regex[li->so+1] == '-') {
-			printf("('-'|[%.*s)", (int) (li->eo-li->so-2), org_regex+li->so+2);
+			fprintf(yyout, "('-'|[%.*s)", (int) (li->eo-li->so-2), org_regex+li->so+2);
 			return;
 		} else if(org_regex[li->eo-2] == '-') {
-			printf("('-'|%.*s])", (int) (li->eo-li->so-2), org_regex+li->so);
+			fprintf(yyout, "('-'|%.*s])", (int) (li->eo-li->so-2), org_regex+li->so);
 			return;
 		}
 	} else if(li->type == CTX_NONE && org_regex[li->so] == '"') {
-		printf("'\"'");
+		fprintf(yyout, "'\"'");
 		return;
 	}
-	printf("%.*s", (int) (li->eo-li->so), org_regex+li->so);
+	fprintf(yyout, "%.*s", (int) (li->eo-li->so), org_regex+li->so);
 }
 
 static int count_groups(sblist *tokens, const char* org_regex) {
@@ -160,7 +160,7 @@ static void expand_groups(char *buf, int groups) {
 	char intbuf[16];
 	for(i=0; i<groups; ++i) {
 		snprintf(intbuf, sizeof intbuf, "%d", i);
-		printf("%s", replace(buf, "%GROUPNR%", intbuf));
+		fprintf(yyout, "%s", replace(buf, "%GROUPNR%", intbuf));
 	}
 }
 
@@ -188,11 +188,11 @@ static void dump_ragel_parser(const char *machinename, const char* org_regex, in
 	while(fgets(buf, sizeof buf, f)) {
 		char *p;
 		if((p = strstr(buf, "%MACHINENAME%"))) {
-			printf("%s", replace(buf, "%MACHINENAME%", machinename));
+			fprintf(yyout, "%s", replace(buf, "%MACHINENAME%", machinename));
 		} else if((p = strstr(buf, "%GROUPNR%"))) {
 			expand_groups(buf, groups);
 		} else if ((p = strstr(buf, "%MACHINEDEF%"))) {
-			printf("%.*s", (int)(p-buf), buf);
+			fprintf(yyout, "%.*s", (int)(p-buf), buf);
 			size_t i;
 			/* insert group match actions */
 			for(i=0; i<sblist_getsize(tokens); i++) {
@@ -207,19 +207,19 @@ static void dump_ragel_parser(const char *machinename, const char* org_regex, in
 					if(i+1 < sblist_getsize(tokens) && (next = sblist_get(tokens, i+1)) && next->type == CTX_DUP) {
 						print_token(li, org_regex);
 						print_token(next, org_regex);
-						printf(" >A%d %%E%d ", groupno, groupno);
+						fprintf(yyout, " >A%d %%E%d ", groupno, groupno);
 						++i;
 					} else {
 						print_token(li, org_regex);
-						printf(" >A%d %%E%d ", groupno, groupno);
+						fprintf(yyout, " >A%d %%E%d ", groupno, groupno);
 					}
 				} else {
 					print_token(li, org_regex);
 				}
 			}
-			printf("%s", p+sizeof("%MACHINEDEF%")-1);
+			fprintf(yyout, "%s", p+sizeof("%MACHINEDEF%")-1);
 		} else {
-			printf("%s", buf);
+			fprintf(yyout, "%s", buf);
 		}
 	}
 	fclose(f);
@@ -234,6 +234,7 @@ int main() {
 	char buf[4096];
 	size_t lineno = 0;
 	yyin = stdin;
+	yyout = stdout;
 	int maxgroups = 0, err = 0;
 	struct htab *remap = htab_create(32);
 	while(fgets(buf, sizeof buf, yyin)) {
@@ -247,9 +248,10 @@ int main() {
 		htab_value *v = htab_find(remap, (void*)p);
 		if(v) {
 			/* identical regex, already syntax-checked */
-			printf("RE2R_EXPORT int rematch_%s(const char *p, size_t nmatch, regmatch_t matches[])\n"
-			       "{\n\treturn rematch_%s(p, nmatch, matches);\n}\n\n",
-			       buf, (char*) v->p);
+			fprintf(yyout,
+			        "RE2R_EXPORT int rematch_%s(const char *p, size_t nmatch, regmatch_t matches[])\n"
+			        "{\n\treturn rematch_%s(p, nmatch, matches);\n}\n\n",
+			        buf, (char*) v->p);
 			continue;
 		}
 		lex_init(p, pe, LEXFLAG_SILENT);
