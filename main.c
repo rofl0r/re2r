@@ -247,7 +247,7 @@ int main() {
 		htab_value *v = htab_find(remap, (void*)p);
 		if(v) {
 			/* identical regex, already syntax-checked */
-			printf("EXPORT int rematch_%s(const char *p, size_t nmatch, regmatch_t matches[])\n"
+			printf("RE2R_EXPORT int rematch_%s(const char *p, size_t nmatch, regmatch_t matches[])\n"
 			       "{\n\treturn rematch_%s(p, nmatch, matches);\n}\n\n",
 			       buf, (char*) v->p);
 			continue;
