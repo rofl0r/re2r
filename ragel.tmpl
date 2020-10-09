@@ -5,8 +5,7 @@ action E%GROUPNR% { matches[%GROUPNR%+1].rm_eo = p-start; }
 main := %MACHINEDEF% ;
 }%%
 
-static int rematch_%MACHINENAME%(const char *p, size_t nmatch, regmatch_t matches[]) {
-	const char *start = p, *pe = p + strlen(p), *eof = pe;
+EXPORT int rematch_%MACHINENAME%(const char *p, size_t nmatch, regmatch_t matches[]) {
 	size_t i, cs;
 	for(i=0;i<nmatch;++i) matches[i] = (regmatch_t){.rm_so = -1, .rm_eo = -1};
 	%% write data;
