@@ -227,7 +227,29 @@ static void dump_ragel_parser(const char *machinename, const char* org_regex, in
 	sblist_free(tokens);
 }
 
-int main() {
+static int usage() {
+	fprintf(stderr,
+	        "NAME\n"
+	        "\tre2r - POSIX ERE to ragel converter (C) rofl0r\n\n"
+	        "SYNOPSIS\n"
+	        "\tre2r [OPTIONS]\n\n"
+	        "DESCRIPTION\n"
+	        "\treads input from stdin, transforms ERE into a ragel machine,\n"
+	        "\temitting a function with a regexec() like signature.\n"
+	        "\teach input line shall consist of a machine name followed by a regex.\n\n"
+	        "EXAMPLES\n"
+	        "\tipv4 [0-9]+[.][0-9]+[.][0-9]+[.][0-9]+\n\n"
+	        "OPTIONS\n"
+	        "\t-o outfile: write output to outfile instead of stdout\n\n"
+	        "BUGS\n"
+	        "\tPOSIX collation, equivalence, and character classes support is not implemented\n"
+	        "\tyou can replace character classes like [[:digit:]] with [0-9] using some sort\n"
+	        "\tof preprocessor. see ere.y for more details.\n"
+	);
+	return 1;
+}
+
+int main(int argc, char**argv) {
 #ifdef YYDEBUG
 	yydebug = 1;
 #endif
@@ -235,8 +257,20 @@ int main() {
 	size_t lineno = 0;
 	yyin = stdin;
 	yyout = stdout;
-	int maxgroups = 0, err = 0;
+	int maxgroups = 0, err = 0, c;
 	struct htab *remap = htab_create(32);
+	while((c = getopt(argc, argv, "o:")) != EOF) switch(c) {
+	case 'o':
+		yyout = fopen(optarg, "w");
+		if(!yyout) {
+			perror("open");
+			return 1;
+		}
+		break;
+	default:
+		return usage();
+	}
+	fprintf(yyout, "/* automatically generated with re2r by rofl0r */\n");
 	while(fgets(buf, sizeof buf, yyin)) {
 		++lineno;
 		char* q = buf;
