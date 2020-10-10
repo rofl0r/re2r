@@ -1,0 +1,21 @@
+NAME
+	re2r - POSIX ERE to ragel converter (C) rofl0r
+
+SYNOPSIS
+	re2r [OPTIONS]
+
+DESCRIPTION
+	reads input from stdin, transforms ERE into a ragel machine,
+	emitting a function with a regexec() like signature.
+	each input line shall consist of a machine name followed by a regex.
+
+EXAMPLES
+	ipv4 [0-9]+[.][0-9]+[.][0-9]+[.][0-9]+
+
+OPTIONS
+	-o outfile: write output to outfile instead of stdout
+
+BUGS
+	POSIX collation, equivalence, and character classes support is not implemented
+	you can replace character classes like [[:digit:]] with [0-9] using some sort
+	of preprocessor. see ere.y for more details.
