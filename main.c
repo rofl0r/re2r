@@ -69,16 +69,6 @@ static void expand_groups(char *buf, int groups) {
 	}
 }
 
-static inline void* sblist_pop(sblist *l) {
-	size_t len = sblist_getsize(l);
-	if(len > 0) {
-		void *x = sblist_get(l, len-1);
-		sblist_delete(l, len-1);
-		return x;
-	}
-	return 0;
-}
-
 static void dump_ragel_parser(const char *machinename, const char* org_regex, const char* org_regex_end, int *maxgroups) {
 	FILE *f = fopen("ragel.tmpl", "r");
 	char buf[4096];

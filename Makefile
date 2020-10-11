@@ -15,7 +15,7 @@ y.tab.h: y.tab.c
 y.tab.c: ere.y
 	$(YACC) -d $(YFLAGS) $<
 
-re2r: main.o lexer.o y.tab.o sblist.o hsearch.o tokens.o
+re2r: main.o lexer.o y.tab.o sblist.o sblist_pop.o hsearch.o tokens.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
