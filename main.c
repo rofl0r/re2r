@@ -64,7 +64,7 @@ static void expand_groups(char *buf, int groups) {
 	int i;
 	char intbuf[16];
 	for(i=0; i<groups; ++i) {
-		snprintf(intbuf, sizeof intbuf, "%d", i);
+		snprintf(intbuf, sizeof intbuf, "%d", i+1);
 		fprintf(yyout, "%s", replace(buf, "%GROUPNR%", intbuf));
 	}
 }
@@ -128,11 +128,11 @@ static void dump_ragel_parser(const char *machinename, const char* org_regex, co
 					if(i+1 < sblist_getsize(tokens) && (next = sblist_get(tokens, i+1)) && next->type == CTX_DUP) {
 						print_token(li, org_regex);
 						print_token(next, org_regex);
-						fprintf(yyout, " >A%d %%E%d ", groupno, groupno);
+						fprintf(yyout, " >A%d %%E%d ", groupno+1, groupno+1);
 						++i;
 					} else {
 						print_token(li, org_regex);
-						fprintf(yyout, " >A%d %%E%d ", groupno, groupno);
+						fprintf(yyout, " >A%d %%E%d ", groupno+1, groupno+1);
 					}
 				} else {
 					print_token(li, org_regex);
