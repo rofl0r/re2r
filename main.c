@@ -69,6 +69,32 @@ static void expand_groups(char *buf, int groups) {
 	}
 }
 
+static void dump_parents(char *buf, sblist *tokens, const char* org_regex) {
+	size_t i;
+	int cgroup = 0;
+	char parbuf[1024];
+	strcpy(parbuf, "{[0]=0,");
+	sblist *group_order = sblist_new(sizeof (int), 32) ;
+	for(i=0; i<sblist_getsize(tokens); i++) {
+		struct list_item *li= sblist_get(tokens, i);
+		if(li->type == CTX_NONE && org_regex[li->so] == '(') {
+			char gbuf[32];
+			if(sblist_getsize(group_order))
+				snprintf(gbuf, sizeof gbuf, "[%d]=%d,", cgroup+1, 1+*((int*)sblist_get(group_order, sblist_getsize(group_order)-1)));
+			else
+				snprintf(gbuf, sizeof gbuf, "[%d]=%d,", cgroup+1, 0);
+			strcat(parbuf, gbuf);
+			sblist_add(group_order, &cgroup);
+			++cgroup;
+		} else if(li->type == CTX_NONE && org_regex[li->so] == ')') {
+			(void) sblist_pop(group_order);
+		}
+	}
+	sblist_free(group_order);
+	strcat(parbuf, "}");
+	fprintf(yyout, "%s", replace(buf, "%PARENTARRAY%", parbuf));
+}
+
 static void dump_ragel_parser(const char *machinename, const char* org_regex, const char* org_regex_end, int *maxgroups) {
 	FILE *f = fopen("ragel.tmpl", "r");
 	char buf[4096];
@@ -84,6 +110,8 @@ static void dump_ragel_parser(const char *machinename, const char* org_regex, co
 			fprintf(yyout, "%s", replace(buf, "%MACHINENAME%", machinename));
 		} else if((p = strstr(buf, "%GROUPNR%"))) {
 			expand_groups(buf, groups);
+		} else if((p = strstr(buf, "%PARENTARRAY%"))) {
+			dump_parents(buf, tokens, org_regex);
 		} else if ((p = strstr(buf, "%MACHINEDEF%"))) {
 			fprintf(yyout, "%.*s", (int)(p-buf), buf);
 			size_t i;

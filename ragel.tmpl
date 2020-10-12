@@ -8,6 +8,8 @@ main := %MACHINEDEF% ;
 RE2R_EXPORT int rematch_%MACHINENAME%(const char *p, size_t nmatch, regmatch_t matches[])
 {
 	size_t i, cs;
+	int par;
+	static const unsigned char parents[] = %PARENTARRAY%;
 	const char *start = p, *pe = p + strlen(p), *eof = pe;
 	%% write data nofinal noerror noentry;
 	for(i=0;i<nmatch;++i) matches[i] = (regmatch_t){.rm_so = -1, .rm_eo = -1};
@@ -15,7 +17,9 @@ RE2R_EXPORT int rematch_%MACHINENAME%(const char *p, size_t nmatch, regmatch_t m
 	%% write exec;
 	if(cs < %%{ write first_final; }%% ) return -1;
 	matches[0] = (regmatch_t){.rm_so = 0, .rm_eo = eof-start};
-	for(i=0;i<nmatch;++i) if(matches[i].rm_eo == -1) matches[i].rm_so = -1;
+	for(i=1;i<nmatch;++i) if(matches[i].rm_eo == -1) matches[i].rm_so = -1;
+	else if(matches[i].rm_so == matches[i].rm_eo) matches[i] = (regmatch_t){.rm_so = -1, .rm_eo = -1};
+	else { par = i; while((par = parents[par])) if(matches[par].rm_eo == -1) { matches[i] = (regmatch_t){.rm_so = -1, .rm_eo = -1}; break; }}
 	return 0;
 }
 
