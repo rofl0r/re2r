@@ -222,6 +222,6 @@ int main(int argc, char**argv) {
 			fprintf(stderr, "%*s^\n", (int)errpos, "");
 		}
 	}
-	fprintf(stderr, "diagnostics: maximum number of match groups: %d\n", maxgroups);
+	fprintf(stderr, "diagnostics: maximum number of match groups: %d\n", maxgroups+1);
 	return !!err;
 }
