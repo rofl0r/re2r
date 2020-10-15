@@ -170,7 +170,7 @@ static int usage() {
 }
 
 int main(int argc, char**argv) {
-#ifdef YYDEBUG
+#if defined(YYDEBUG) && YYDEBUG
 	extern int yydebug;
 	yydebug = 1;
 #endif
