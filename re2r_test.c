@@ -77,7 +77,7 @@ static int run_command(const char* cmd, const char* inp) {
 		return 1;
 	}
 
-	if(inp && inp[0]) fprintf(fp, inp);
+	if(inp && inp[0]) fprintf(fp, "%s", inp);
 
 	status = pclose(fp);
 	if(status == -1) {
