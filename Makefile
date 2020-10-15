@@ -1,15 +1,22 @@
+# do not use sed to override prefix, you can issue "make prefix=/usr"
+# also you can put prefix=/usr into "config.mak"
+prefix=/usr/local
+bindir=$(prefix)/bin
+
 ifeq ($(DEBUG),1)
 YFLAGS=-t -v
 CPPFLAGS=-DYYDEBUG=1
 endif
 
+TOOLS=re2r re2r_test
 OBJS = lexer.o y.tab.o sblist.o sblist_pop.o hsearch.o tokens.o
 
 -include config.mak
 
 HOSTCC ?= $(CC)
+INSTALL ?= install
 
-all: re2r re2r_test
+all: $(TOOLS)
 
 lexer.c: y.tab.h
 main.c: y.tab.h template.h
@@ -35,4 +42,11 @@ re2r_test: re2r_test.o $(OBJS)
 clean:
 	rm -rf re2r re2r_test file2hdr *.o y.tab.h y.tab.c template.h
 
-.PHONY: all clean
+$(DESTDIR)$(bindir)/%: %
+	$(INSTALL) -D $< $@
+
+install-tools: $(TOOLS:%=$(DESTDIR)$(bindir)/%)
+
+install: install-tools
+
+.PHONY: all clean install install-tools
