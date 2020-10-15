@@ -5,6 +5,7 @@
 #endif
 
 extern int yyerror(const char*);
+extern int yylex();
 extern YYSTYPE yylval;
 extern FILE* yyin;
 
