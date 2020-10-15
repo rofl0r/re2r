@@ -33,6 +33,6 @@ re2r_test: re2r_test.o $(OBJS)
 	$(CC) -o $@ $^ -ldl $(LDFLAGS)
 
 clean:
-	rm -rf re2r *.o y.tab.h y.tab.c
+	rm -rf re2r re2r_test file2hdr *.o y.tab.h y.tab.c template.h
 
 .PHONY: all clean
