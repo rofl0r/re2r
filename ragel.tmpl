@@ -5,7 +5,7 @@ action E%GROUPNR% { matches[%GROUPNR%].rm_eo = p-start; }
 main := %MACHINEDEF% ;
 }%%
 
-RE2R_EXPORT int rematch_%MACHINENAME%(const char *p, const char* pe, size_t nmatch, regmatch_t matches[])
+RE2R_EXPORT int re2r_match_%MACHINENAME%(const char *p, const char* pe, size_t nmatch, regmatch_t matches[])
 {
 	size_t i, cs;
 	int par;

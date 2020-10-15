@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
 		printf("keeping temporary files %s.*\n", tmp);
 	}
 
-	rematch_func matchfn = dlsym(so, "rematch_regex");
+	rematch_func matchfn = dlsym(so, "re2r_match_regex");
 	if(!matchfn) {
 		fprintf(stderr, "match func not found\n");
 		return 1;

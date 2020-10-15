@@ -208,8 +208,8 @@ int main(int argc, char**argv) {
 		if(v) {
 			/* identical regex, already syntax-checked */
 			fprintf(yyout,
-			        "RE2R_EXPORT int rematch_%s(const char *p, const char* pe, size_t nmatch, regmatch_t matches[])\n"
-			        "{\n\treturn rematch_%s(p, pe, nmatch, matches);\n}\n\n",
+			        "RE2R_EXPORT int re2r_match_%s(const char *p, const char* pe, size_t nmatch, regmatch_t matches[])\n"
+			        "{\n\treturn re2r_match_%s(p, pe, nmatch, matches);\n}\n\n",
 			        buf, (char*) v->p);
 			continue;
 		}
