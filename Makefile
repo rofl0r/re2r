@@ -11,6 +11,7 @@ all: re2r re2r_test
 
 lexer.c: y.tab.h
 main.c: y.tab.h
+tokens.c: y.tab.h
 
 y.tab.h: y.tab.c
 
