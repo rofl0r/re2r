@@ -18,9 +18,9 @@ INSTALL ?= install
 
 all: $(TOOLS)
 
-lexer.c: y.tab.h
-main.c: y.tab.h template.h
-tokens.c: y.tab.h
+lexer.o: y.tab.h
+main.o: y.tab.h template.h
+tokens.o: y.tab.h
 
 template.h: file2hdr ragel.tmpl
 	./file2hdr ragel.tmpl > template.h
