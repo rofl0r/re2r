@@ -15,7 +15,6 @@ extern int yyerror(const char*);
 FILE *yyin, *yyout;
 
 extern int yyparse();
-extern int yydebug;
 
 static char* replace(const char*s, const char* needle, const char* repl) {
 	char cp[4096+128];
@@ -172,6 +171,7 @@ static int usage() {
 
 int main(int argc, char**argv) {
 #ifdef YYDEBUG
+	extern int yydebug;
 	yydebug = 1;
 #endif
 	char buf[4096];
