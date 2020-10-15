@@ -7,11 +7,19 @@ OBJS = lexer.o y.tab.o sblist.o sblist_pop.o hsearch.o tokens.o
 
 -include config.mak
 
+HOSTCC ?= $(CC)
+
 all: re2r re2r_test
 
 lexer.c: y.tab.h
-main.c: y.tab.h
+main.c: y.tab.h template.h
 tokens.c: y.tab.h
+
+template.h: file2hdr ragel.tmpl
+	./file2hdr ragel.tmpl > template.h
+
+file2hdr: file2hdr.c
+	$(HOSTCC) $(HOSTCFLAGS) $< -o $@
 
 y.tab.h: y.tab.c
 

@@ -9,6 +9,7 @@
 #include "sblist.h"
 #include "hsearch.h"
 #include "tokens.h"
+#include "template.h"
 
 extern int yyerror(const char*);
 
@@ -94,8 +95,7 @@ static void dump_parents(char *buf, sblist *tokens, const char* org_regex) {
 	fprintf(yyout, "%s", replace(buf, "%PARENTARRAY%", parbuf));
 }
 
-static void dump_ragel_parser(const char *machinename, const char* org_regex, const char* org_regex_end, int *maxgroups) {
-	FILE *f = fopen("ragel.tmpl", "r");
+static void dump_ragel_parser(FILE *f, const char *machinename, const char* org_regex, const char* org_regex_end, int *maxgroups) {
 	char buf[4096];
 	int groups, cgroup = 0;
 	sblist *tokens = lex_and_transform(org_regex, org_regex_end);
@@ -142,7 +142,6 @@ static void dump_ragel_parser(const char *machinename, const char* org_regex, co
 			fprintf(yyout, "%s", buf);
 		}
 	}
-	fclose(f);
 	sblist_free(group_order);
 	sblist_free(tokens);
 }
@@ -160,7 +159,9 @@ static int usage() {
 	        "EXAMPLES\n"
 	        "\tipv4 [0-9]+[.][0-9]+[.][0-9]+[.][0-9]+\n\n"
 	        "OPTIONS\n"
-	        "\t-o outfile: write output to outfile instead of stdout\n\n"
+	        "\t-t template.txt: use template.txt instead of builtin (ragel.tmpl)\n"
+	        "\t-o outfile: write output to outfile instead of stdout\n"
+		"\n"
 	        "BUGS\n"
 	        "\tPOSIX collation, equivalence, and character classes support is not implemented\n"
 	        "\tyou can replace character classes like [[:digit:]] with [0-9] using some sort\n"
@@ -174,19 +175,22 @@ int main(int argc, char**argv) {
 	extern int yydebug;
 	yydebug = 1;
 #endif
-	char buf[4096];
+	char buf[4096], *template = 0;
 	size_t lineno = 0;
 	yyin = stdin;
 	yyout = stdout;
 	int maxgroups = 0, err = 0, c;
 	struct htab *remap = htab_create(32);
-	while((c = getopt(argc, argv, "o:")) != EOF) switch(c) {
+	while((c = getopt(argc, argv, "t:o:")) != EOF) switch(c) {
 	case 'o':
 		yyout = fopen(optarg, "w");
 		if(!yyout) {
 			perror("open");
 			return 1;
 		}
+		break;
+	case 't':
+		template = optarg;
 		break;
 	default:
 		return usage();
@@ -211,9 +215,13 @@ int main(int argc, char**argv) {
 		}
 		lex_init(p, pe, LEXFLAG_SILENT);
 		if(yyparse() == 0) {
-			htab_insert(remap, strdup(p), HTV_P(strdup(buf)));
 			/* syntax check OK */
-			dump_ragel_parser(buf, p, pe, &maxgroups);
+			htab_insert(remap, strdup(p), HTV_P(strdup(buf)));
+			FILE *f;
+			if(template) f = fopen(template, "r");
+			else f = fmemopen((void*)ragel_tmpl.data, ragel_tmpl.ulen, "r");
+			dump_ragel_parser(f, buf, p, pe, &maxgroups);
+			fclose(f);
 		} else {
 			++err;
 			size_t errpos = lex_errpos();

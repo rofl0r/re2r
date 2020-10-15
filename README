@@ -13,6 +13,7 @@ EXAMPLES
 	ipv4 [0-9]+[.][0-9]+[.][0-9]+[.][0-9]+
 
 OPTIONS
+	-t template.txt: use template.txt instead of builtin (ragel.tmpl)
 	-o outfile: write output to outfile instead of stdout
 
 BUGS
