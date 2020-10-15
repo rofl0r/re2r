@@ -5,12 +5,12 @@ action E%GROUPNR% { matches[%GROUPNR%].rm_eo = p-start; }
 main := %MACHINEDEF% ;
 }%%
 
-RE2R_EXPORT int rematch_%MACHINENAME%(const char *p, size_t nmatch, regmatch_t matches[])
+RE2R_EXPORT int rematch_%MACHINENAME%(const char *p, const char* pe, size_t nmatch, regmatch_t matches[])
 {
 	size_t i, cs;
 	int par;
 	static const unsigned char parents[] = %PARENTARRAY%;
-	const char *start = p, *pe = p + strlen(p), *eof = pe;
+	const char *start = p, *eof = pe;
 	%% write data nofinal noerror noentry;
 	for(i=0;i<nmatch;++i) matches[i] = (regmatch_t){.rm_so = -1, .rm_eo = -1};
 	%% write init;

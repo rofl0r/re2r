@@ -93,7 +93,7 @@ static int run_command(const char* cmd, const char* inp) {
 
 #include <dlfcn.h>
 
-typedef int (*rematch_func)(const char *, size_t, regmatch_t[]);
+typedef int (*rematch_func)(const char *, const char*, size_t, regmatch_t[]);
 
 int main(int argc, char** argv) {
 	const char *cc = getenv("CC");
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
 	snprintf(re2r_cmd, sizeof re2r_cmd, "%s -o %s.rl", re2r, tmp);
 	snprintf(ragel_cmd, sizeof ragel_cmd, "%s -o %s.c %s.rl", ragel, tmp, tmp);
 	snprintf(cc_cmd, sizeof re2r_cmd,
-		"%s -include string.h -include regex.h -DRE2R_EXPORT=extern -fPIC -shared -o %s.so %s.c", cc, tmp, tmp);
+		"%s -include regex.h -DRE2R_EXPORT=extern -fPIC -shared -o %s.so %s.c", cc, tmp, tmp);
 
 	char buf[4096];
 	snprintf(buf, sizeof buf, "regex %s\n", regex);
@@ -158,10 +158,11 @@ int main(int argc, char** argv) {
 
 	int ret = 0;
 	while(fgets(buf, sizeof buf, stdin)) {
-		char *p = strchr(buf, '\n'), *expr = buf;
+		char *expr = buf, *p = strchr(expr, '\n');
 		if(p) *p = 0;
+		else p = expr+strlen(expr);
 		regmatch_t match[256];
-		int r = matchfn(expr, 256, match);
+		int r = matchfn(expr, p, 256, match);
 		if(r != 0) {
 			fprintf(stderr, "re2r match func failed\n");
 			ret++;
