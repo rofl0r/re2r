@@ -1,3 +1,6 @@
+#ifndef YYDEFS_H
+#define YYDEFS_H
+
 #include <stdio.h>
 
 #ifndef YYSTYPE
@@ -9,3 +12,4 @@ extern int yylex();
 extern YYSTYPE yylval;
 extern FILE* yyin;
 
+#endif
