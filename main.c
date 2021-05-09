@@ -46,6 +46,9 @@ static void print_token(struct list_item *li, const char *org_regex) {
 	} else if(li->type == CTX_NONE && org_regex[li->so] == '"') {
 		fprintf(yyout, "'\"'");
 		return;
+	} else if(li->type == CTX_NONE && org_regex[li->so] == '.') {
+		fprintf(yyout, " any ");
+		return;
 	}
 	fprintf(yyout, "%.*s", (int) (li->eo-li->so), org_regex+li->so);
 }
